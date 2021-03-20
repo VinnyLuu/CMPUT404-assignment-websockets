@@ -60,19 +60,20 @@ class World:
     def world(self):
         return self.space
 
-myWorld = World()        
+myWorld = World()    
 
-def set_listener( entity, data ):
-    ''' do something with the update ! '''
-
-myWorld.add_set_listener( set_listener )
-    
 def send_all(msg):
     for client in clients:
         client.put( msg )
 
 def send_all_json(obj):
     send_all( json.dumps(obj) )
+
+def set_listener( entity, data ):
+    ''' do something with the update ! '''
+    send_all_json({entity : data})
+
+myWorld.add_set_listener( set_listener )
 
 class Client:
     def __init__(self):
@@ -96,10 +97,10 @@ def read_ws(ws,client):
     try:
         while True:
             msg = ws.receive()
-            print("WS RECV: %s" % msg)
             if (msg is not None):
                 packet = json.loads(msg)
-                send_all_json( packet )
+                for k, v in packet.items():
+                    myWorld.set(k, v)
             else:
                 break
     except:
